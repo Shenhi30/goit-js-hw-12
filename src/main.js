@@ -1,5 +1,7 @@
-import { getImagesByQuery, PER_PAGE } from './js/pixabay-api.js';
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
 
+import { getImagesByQuery } from './js/pixabay-api.js';
 import {
     createGallery,
     clearGallery,
@@ -9,113 +11,106 @@ import {
     hideLoadMoreButton,
 } from './js/render-functions.js';
 
-import iziToast from 'izitoast';
-import 'izitoast/dist/css/iziToast.min.css';
+const formElement = document.querySelector('.form');
+const loadMoreBtn = document.querySelector('.js-btn');
 
-const form = document.querySelector('#search-form');
-const loadMoreBtn = document.querySelector('.load-more');
+const PAGE_SIZE = 15;
+let totalPages = 0;
+let query = '';
+let currentPage = 0;
 
-let searchQuery = '';
-let page = 1;
-let totalHits = 0;
-
-hideLoadMoreButton();
-
-form.addEventListener('submit', async e => {
+// --- Пошук ---
+formElement.addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    const query = e.currentTarget.elements.search.value.trim();
+    const formData = new FormData(e.target);
+    query = formData.get('search-text').trim();
 
     if (!query) {
-        iziToast.warning({
-            message: 'Search field must be filled',
+        iziToast.error({
+            message: 'Please enter a search query',
             position: 'topRight',
         });
         return;
     }
 
-    searchQuery = query;
-    page = 1;
+    showLoader();
     clearGallery();
     hideLoadMoreButton();
-    showLoader();
+    currentPage = 1;
 
     try {
-        const data = await getImagesByQuery(searchQuery, page);
-        totalHits = data.totalHits;
+        const res = await getImagesByQuery(query, currentPage);
+        const { hits, totalHits } = res;
+        totalPages = Math.ceil(totalHits / PAGE_SIZE);
 
-        hideLoader();
-
-        if (data.hits.length === 0) {
-            iziToast.info({
-                message: 'Images do not found. Try search something else.',
+        if (hits.length === 0) {
+            iziToast.error({
+                message: 'No images found. Try another query.',
                 position: 'topRight',
             });
             return;
         }
 
-        createGallery(data.hits);
-
-        iziToast.success({
-            message: `Find ${totalHits} images`,
-            position: 'topRight',
-        });
-
-        if (data.hits.length < PER_PAGE) {
-            iziToast.info({
-                message: "You've reached the end of search results.",
-                position: 'topRight',
-            });
-            hideLoadMoreButton();
-            return;
-        }
-
-        showLoadMoreButton();
+        createGallery(hits);
+        checkBtnStatus();
     } catch (error) {
-        hideLoader();
         iziToast.error({
-            message: 'Error image load',
+            message: 'Request failed. Please try again.',
             position: 'topRight',
         });
+        console.error(error);
+    } finally {
+        hideLoader();
+        e.target.reset();
     }
 });
 
+// --- Load More ---
 loadMoreBtn.addEventListener('click', async () => {
-    page += 1;
-    showLoader();
+    currentPage += 1;
     hideLoadMoreButton();
+    showLoader();
 
     try {
-        const data = await getImagesByQuery(searchQuery, page);
-
-        createGallery(data.hits);
-        hideLoader();
-
-        const firstCard = document.querySelector('.gallery a');
-        if (firstCard) {
-            const cardHeight = firstCard.getBoundingClientRect().height;
-            window.scrollBy({
-                top: cardHeight * 2,
-                behavior: 'smooth',
-            });
+        const res = await getImagesByQuery(query, currentPage);
+        if (res.hits.length > 0) {
+            createGallery(res.hits);
+            checkBtnStatus();
+            smoothScroll();
         }
-
-        const loadedImages = page * PER_PAGE;
-        if (loadedImages >= totalHits) {
-            hideLoadMoreButton();
-            iziToast.info({
-                message: "You've reached the end of search results.",
-                position: 'topRight',
-            });
-            return;
-        }
-
-        showLoadMoreButton();
     } catch (error) {
-        hideLoader();
         iziToast.error({
-            message: 'Error image load',
+            message: 'Failed to load more images. Please try again.',
+            position: 'topRight',
+        });
+        console.error(error);
+        if (currentPage < totalPages) showLoadMoreButton();
+    } finally {
+        hideLoader();
+    }
+});
+
+// --- Плавне скролювання ---
+function smoothScroll() {
+    const galleryItem = document.querySelector('.gallery-item');
+    if (!galleryItem) return;
+    const cardHeight = galleryItem.getBoundingClientRect().height;
+
+    window.scrollBy({
+        top: cardHeight * 2,
+        behavior: 'smooth',
+    });
+}
+
+// --- Статус кнопки Load More ---
+function checkBtnStatus() {
+    if (currentPage < totalPages) {
+        showLoadMoreButton();
+    } else {
+        hideLoadMoreButton();
+        iziToast.info({
+            message: "We're sorry, but you've reached the end of search results",
             position: 'topRight',
         });
     }
-});
+}

@@ -1,57 +1,86 @@
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
-const galleryContainer = document.querySelector('.gallery');
-const loadMoreBtn = document.querySelector('.load-more');
+const loadMoreBtn = document.querySelector('.js-btn');
+const gallery = document.querySelector('.gallery');
 const loader = document.querySelector('.loader');
 
-let lightbox = new SimpleLightbox('.gallery a', {
-    captionsData: 'alt',
-    captionDelay: 250,
-});
+let lightbox = null;
 
 export function createGallery(images) {
     const markup = images
         .map(
-            img => `
-    <li class="gallery-item">
-      <a class="gallery-link" href="${img.largeImageURL}">
-        <img
-          class="gallery-image"
-          src="${img.webformatURL}"
-          alt="${img.tags}"
-          loading="lazy"
-        />
-      </a>
-      <div class="info">
-        <p class="info-item"><b>Likes:</b> ${img.likes}</p>
-        <p class="info-item"><b>Views:</b> ${img.views}</p>
-        <p class="info-item"><b>Comments:</b> ${img.comments}</p>
-        <p class="info-item"><b>Downloads:</b> ${img.downloads}</p>
-      </div>
-    </li>`
+            ({
+                webformatURL,
+                largeImageURL,
+                tags,
+                likes,
+                views,
+                comments,
+                downloads,
+            }) => `
+        <li class="gallery-item">
+          <a href="${largeImageURL}">
+            <img src="${webformatURL}" alt="${tags}"/>
+          </a>
+          <ul class="stats">
+            <li class="stats-item">
+              <span class="stats-label">Likes</span>
+              <span class="stats-value">${likes}</span>
+            </li>
+            <li class="stats-item">
+              <span class="stats-label">Views</span>
+              <span class="stats-value">${views}</span>
+            </li>
+            <li class="stats-item">
+              <span class="stats-label">Comments</span>
+              <span class="stats-value">${comments}</span>
+            </li>
+            <li class="stats-item">
+              <span class="stats-label">Downloads</span>
+              <span class="stats-value">${downloads}</span>
+            </li>
+          </ul>
+        </li>
+    `
         )
         .join('');
-    galleryContainer.insertAdjacentHTML('beforeend', markup);
+
+    gallery.insertAdjacentHTML('beforeend', markup);
+
+    if (lightbox) {
+        lightbox.destroy();
+    }
+
+    lightbox = new SimpleLightbox('.gallery a', {
+        captions: true,
+        captionsData: 'alt',
+        captionDelay: 250,
+        captionPosition: 'bottom',
+    });
     lightbox.refresh();
 }
 
 export function clearGallery() {
-    galleryContainer.innerHTML = '';
+    gallery.innerHTML = '';
+    if (lightbox) {
+        lightbox.destroy();
+        lightbox = null;
+    }
 }
 
 export function showLoader() {
-    loader.classList.add('is-visible');
+    loader.classList.remove('hidden');
 }
 
 export function hideLoader() {
-    loader.classList.remove('is-visible');
+    loader.classList.add('hidden');
 }
 
 export function showLoadMoreButton() {
-    loadMoreBtn.classList.add('is-visible');
+    loadMoreBtn.classList.remove('hidden');
 }
 
 export function hideLoadMoreButton() {
-    loadMoreBtn.classList.remove('is-visible');
+    loadMoreBtn.classList.add('hidden');
 }
