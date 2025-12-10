@@ -7,23 +7,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vanilla App Template</title>
   <script type="module" crossorigin src="/vanilla-app-template/index.js"></script>
-  <link rel="modulepreload" crossorigin href="/vanilla-app-template/assets/vendor-CNqCr-V-.js">
-  <link rel="stylesheet" crossorigin href="/vanilla-app-template/assets/vendor-CWKLx11g.css">
-  <link rel="stylesheet" crossorigin href="/vanilla-app-template/assets/index-BfcQz8W_.css">
+  <link rel="modulepreload" crossorigin href="/vanilla-app-template/assets/vendor-DvfmeZXB.js">
+  <link rel="stylesheet" crossorigin href="/vanilla-app-template/assets/vendor-DumFYO8Z.css">
+  <link rel="stylesheet" crossorigin href="/vanilla-app-template/assets/index-E2TGa0Fx.css">
 </head>
 
 <body>
-  <form class="form" id="search-form">
-    <label class="form-label">
-      <input class="form-input" type="text" name="search" placeholder="Search images..." required />
+  <form class="form">
+    <label>
+      <input type="text" name="search-text" placeholder="Search images..." required />
     </label>
-    <button class="btn" type="submit">Search</button>
+    <button type="submit">Search</button>
   </form>
-  <span class="loader" aria-hidden="true"></span>
-  <div class="container">
-    <ul class="gallery"></ul>
+  <ul class="gallery"></ul>
+  <button class="load-more-btn js-btn hidden" type="button">Load more</button>
+  <div class="loader-container">
+    <span class="loader hidden"></span>
   </div>
-  <button class="load-more">Load more</button>
 </body>
 
 </html>
