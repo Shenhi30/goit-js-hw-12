@@ -19,7 +19,6 @@ let totalPages = 0;
 let query = '';
 let currentPage = 0;
 
-// --- Пошук ---
 formElement.addEventListener('submit', async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -65,7 +64,6 @@ formElement.addEventListener('submit', async (e) => {
     }
 });
 
-// --- Load More ---
 loadMoreBtn.addEventListener('click', async () => {
     currentPage += 1;
     hideLoadMoreButton();
@@ -90,7 +88,6 @@ loadMoreBtn.addEventListener('click', async () => {
     }
 });
 
-// --- Плавне скролювання ---
 function smoothScroll() {
     const galleryItem = document.querySelector('.gallery-item');
     if (!galleryItem) return;
@@ -102,7 +99,6 @@ function smoothScroll() {
     });
 }
 
-// --- Статус кнопки Load More ---
 function checkBtnStatus() {
     if (currentPage < totalPages) {
         showLoadMoreButton();
